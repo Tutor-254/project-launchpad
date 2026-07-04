@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /learn
+Disallow: /instructor
+Disallow: /wishlist
+Disallow: /certificates
