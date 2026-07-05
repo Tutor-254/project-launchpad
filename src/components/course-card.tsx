@@ -23,7 +23,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
     let cancelled = false;
     supabase.storage
       .from("course-thumbnails")
-      .createSignedUrl(course.thumbnail_url, 3600)
+      .createSignedUrl(course.thumbnail_url, 7200)
       .then(({ data }) => {
         if (!cancelled) setThumb(data?.signedUrl ?? null);
       });

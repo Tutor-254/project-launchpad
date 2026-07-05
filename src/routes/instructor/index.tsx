@@ -44,19 +44,31 @@ function InstructorHome() {
   const createCourse = useMutation({
     mutationFn: async () => {
       setCreating(true);
+      // Use crypto.randomUUID for the slug suffix to guarantee uniqueness
+      // even under rapid successive creates
+      const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
       const { data, error } = await supabase
         .from("courses")
-        .insert({ title: "Untitled course", instructor_id: user!.id, price_cents: 0, slug: `draft-${Date.now().toString(36)}` })
+        .insert({
+          title: "Untitled course",
+          instructor_id: user!.id,
+          price_cents: 0,
+          slug: `draft-${suffix}`,
+        })
         .select("id")
         .single();
       if (error) throw error;
+      if (!data) throw new Error("Course was not created — no data returned.");
       return data;
     },
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: ["my-courses"] });
-      navigate({ to: "/instructor/$courseId", params: { courseId: d!.id } });
+      navigate({ to: "/instructor/$courseId", params: { courseId: d.id } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("[createCourse]", e);
+      toast.error(`Could not create course: ${e.message}`);
+    },
     onSettled: () => setCreating(false),
   });
 

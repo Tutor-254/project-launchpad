@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { canReapply } from "@/lib/instructor-onboarding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,25 +23,49 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/onboarding")({
   validateSearch: searchSchema,
-  beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return; // unauthenticated users still see onboarding
+  beforeLoad: async ({ search }) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return;
 
     const userId = session.user.id;
+    const intent = search.intent ?? "learn";
 
-    // Check for existing pending application
-    const { data: pendingApp } = await supabase
-      .from("instructor_applications")
-      .select("id")
+    const { data: instructorRole } = await supabase
+      .from("user_roles")
+      .select("role")
       .eq("user_id", userId)
-      .eq("status", "pending")
+      .eq("role", "instructor")
+      .maybeSingle();
+    if (instructorRole) throw redirect({ to: "/instructor" });
+
+    const { data: latestApp } = await supabase
+      .from("instructor_applications")
+      .select("id, status, reviewed_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (pendingApp) {
+    if (latestApp?.status === "pending") {
       throw redirect({ to: "/apply" });
     }
 
-    // If profile already has display_name set, skip onboarding
+    if (latestApp?.status === "approved") {
+      throw redirect({ to: "/apply" });
+    }
+
+    if (latestApp?.status === "rejected" && latestApp.reviewed_at) {
+      if (!canReapply(latestApp.reviewed_at)) {
+        throw redirect({ to: "/apply" });
+      }
+      if (intent === "teach") return;
+    }
+
+    // Teach applicants may already have a learner profile from signup
+    if (intent === "teach") return;
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("display_name")
@@ -131,6 +156,13 @@ function OnboardingPage() {
   const [appErrors, setAppErrors] = useState<Partial<Record<keyof ApplicationFormState, string>>>({});
 
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (intent === "teach") {
+      setRole("teach");
+      setStep("instructor-form");
+    }
+  }, [intent]);
 
   function handleRoleContinue() {
     if (role === "teach") {

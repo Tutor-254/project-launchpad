@@ -1,22 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useAuth, useRoles, useApplicationStatus } from "@/hooks/use-auth";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Users, DollarSign, Clock, ArrowRight } from "lucide-react";
+import { Sparkles, Users, DollarSign, Clock, ArrowRight, XCircle, Loader2 } from "lucide-react";
+import { useInstructorOnboarding } from "@/hooks/use-instructor-onboarding";
 
 export const Route = createFileRoute("/teach")({
   component: TeachPage,
 });
 
 function TeachPage() {
-  const { user, loading } = useAuth();
-  const { isInstructor, loading: rolesLoading } = useRoles(user?.id);
-  const { applicationStatus, loading: appLoading } = useApplicationStatus(user?.id);
-
-  const hasPendingApplication =
-    !isInstructor && applicationStatus?.status === "pending";
-
-  const isReady = !loading && !rolesLoading && !appLoading;
+  const { loading, phase, isInstructor, teachCta } = useInstructorOnboarding();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -49,28 +42,12 @@ function TeachPage() {
             ))}
           </div>
 
-          {/* CTA area — varies by auth + application state */}
           <div className="max-w-md mx-auto">
-            {isReady && hasPendingApplication ? (
-              /* Pending applicant */
-              <div className="bg-card border border-border rounded-2xl p-8 text-left">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="size-10 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center">
-                    <Clock className="size-5" />
-                  </div>
-                  <div>
-                    <p className="font-serif font-semibold">Application in review</p>
-                    <p className="text-xs text-muted-foreground">We'll notify you when a decision is made.</p>
-                  </div>
-                </div>
-                <Link to="/apply">
-                  <Button className="w-full h-12 bg-brand text-brand-foreground hover:bg-brand/90">
-                    Check your application status <ArrowRight className="ml-2 size-4" />
-                  </Button>
-                </Link>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="size-8 animate-spin text-muted-foreground" />
               </div>
-            ) : isReady && isInstructor ? (
-              /* Already an instructor */
+            ) : isInstructor ? (
               <div className="bg-card border border-border rounded-2xl p-8 text-center">
                 <p className="font-serif text-xl mb-2">Welcome back, instructor!</p>
                 <p className="text-sm text-muted-foreground mb-6">Your Studio is ready.</p>
@@ -81,25 +58,28 @@ function TeachPage() {
                 </Link>
               </div>
             ) : (
-              /* Unauthenticated or authenticated without pending application */
               <div className="bg-card border border-border rounded-2xl p-8 text-left">
-                <h2 className="font-serif text-2xl mb-2">Ready to share your expertise?</h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Apply to become an instructor. Our team reviews applications within a few business days.
-                </p>
-                {user ? (
-                  <Link to="/onboarding" search={{ intent: "teach" }}>
-                    <Button className="w-full h-12 bg-brand text-brand-foreground hover:bg-brand/90">
-                      Apply to teach <ArrowRight className="ml-2 size-4" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/auth" search={{ mode: "signup", intent: "teach" }}>
-                    <Button className="w-full h-12 bg-brand text-brand-foreground hover:bg-brand/90">
-                      Sign up to teach <ArrowRight className="ml-2 size-4" />
-                    </Button>
-                  </Link>
-                )}
+                <div className="flex items-start gap-3 mb-4">
+                  {phase === "pending" && (
+                    <div className="size-10 bg-amber-500/10 text-amber-500 rounded-lg flex items-center justify-center shrink-0">
+                      <Clock className="size-5" />
+                    </div>
+                  )}
+                  {(phase === "rejected-cooldown" || phase === "rejected-eligible") && (
+                    <div className="size-10 bg-destructive/10 text-destructive rounded-lg flex items-center justify-center shrink-0">
+                      <XCircle className="size-5" />
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="font-serif text-2xl mb-1">{teachCta.label}</h2>
+                    <p className="text-sm text-muted-foreground">{teachCta.description}</p>
+                  </div>
+                </div>
+                <Link to={teachCta.to} search={teachCta.search}>
+                  <Button className="w-full h-12 bg-brand text-brand-foreground hover:bg-brand/90">
+                    {teachCta.label} <ArrowRight className="ml-2 size-4" />
+                  </Button>
+                </Link>
               </div>
             )}
           </div>

@@ -7,18 +7,9 @@ import { requireAuth } from "@/lib/auth-guards";
 import { Button } from "@/components/ui/button";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 
-// ─── Pure helper (exported for tests) ────────────────────────────────────────
+import { canReapply } from "@/lib/instructor-onboarding";
 
-/**
- * Returns true iff `now` is at or after `rejectedAt` + 30 days.
- * @param rejectedAt ISO-8601 string from `reviewed_at`
- * @param now        optional override for the current instant (default: Date.now())
- */
-export function canReapply(rejectedAt: string, now: Date = new Date()): boolean {
-  const cooldownEnd = new Date(rejectedAt);
-  cooldownEnd.setDate(cooldownEnd.getDate() + 30);
-  return now >= cooldownEnd;
-}
+export { canReapply };
 
 /** Returns the earliest re-apply Date (rejectedAt + 30 days). */
 function reapplyDate(rejectedAt: string): Date {
@@ -67,7 +58,7 @@ export const Route = createFileRoute("/apply")({
       .limit(1)
       .maybeSingle();
 
-    if (!app) throw redirect({ to: "/onboarding" });
+    if (!app) throw redirect({ to: "/onboarding", search: { intent: "teach" } });
   },
   component: ApplyPage,
 });
@@ -110,11 +101,21 @@ export function ApplyPage() {
         {applicationStatus?.status === "pending" && (
           <PendingState createdAt={applicationStatus.created_at} />
         )}
-        {applicationStatus?.status === "rejected" && (
+        {applicationStatus?.status === "rejected" && applicationStatus.reviewed_at && (
           <RejectedState
-            rejectedAt={applicationStatus.reviewed_at!}
+            rejectedAt={applicationStatus.reviewed_at}
             reason={applicationStatus.rejection_reason ?? undefined}
           />
+        )}
+        {!applicationStatus && (
+          <div className="max-w-md text-center">
+            <p className="text-muted-foreground mb-4">We couldn&apos;t load your application status.</p>
+            <Link to="/onboarding" search={{ intent: "teach" }}>
+              <Button className="bg-brand text-brand-foreground hover:bg-brand/90">
+                Start instructor application
+              </Button>
+            </Link>
+          </div>
         )}
       </main>
       <SiteFooter />

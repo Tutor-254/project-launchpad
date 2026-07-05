@@ -25,6 +25,11 @@ export async function requireRole(userId: string, role: "instructor" | "admin") 
   return !!data;
 }
 
+export async function requireAdmin(userId: string) {
+  const ok = await requireRole(userId, "admin");
+  if (!ok) throw redirect({ to: "/" });
+}
+
 export async function requireNoApplicationPending(userId: string): Promise<void> {
   const { data } = await supabase
     .from("instructor_applications")

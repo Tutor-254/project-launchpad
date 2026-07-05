@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeOnboardingIntent } from "@/lib/instructor-onboarding";
 import { Toaster } from "@/components/ui/sonner";
 
 
@@ -140,14 +141,28 @@ function RootComponent() {
       if (event === "SIGNED_IN" && session?.user) {
         const isOAuth = session.user.app_metadata?.provider !== "email";
         if (isOAuth) {
+          const storedIntent = consumeOnboardingIntent();
           const { data: profile } = await supabase
             .from("profiles")
             .select("display_name, headline")
             .eq("id", session.user.id)
             .single();
+
+          const { data: instructorRole } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .eq("role", "instructor")
+            .maybeSingle();
+
+          if (storedIntent === "teach" && !instructorRole) {
+            router.navigate({ to: "/onboarding", search: { intent: "teach" } });
+            return;
+          }
+
           const isIncomplete = !profile?.display_name || !profile?.headline;
           if (isIncomplete) {
-            router.navigate({ to: "/onboarding", search: { intent: "learn" } });
+            router.navigate({ to: "/onboarding", search: { intent: storedIntent ?? "learn" } });
           }
         }
       }

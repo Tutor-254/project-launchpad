@@ -76,7 +76,7 @@ function CourseEditor() {
         thumbnail_url: course.thumbnail_url,
       });
       if (course.thumbnail_url) {
-        supabase.storage.from("course-thumbnails").createSignedUrl(course.thumbnail_url, 3600)
+        supabase.storage.from("course-thumbnails").createSignedUrl(course.thumbnail_url, 7200)
           .then(({ data }) => setThumbPreview(data?.signedUrl ?? null));
       }
     }
@@ -84,30 +84,56 @@ function CourseEditor() {
 
   const saveCourse = useMutation({
     mutationFn: async () => {
-      const slug = form.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || `course-${courseId.slice(0, 8)}`;
-      const { error } = await supabase.from("courses").update({ ...form, slug }).eq("id", courseId);
+      // Derive slug from title; append the short course id to prevent collisions
+      // between courses that share the same title
+      const base = form.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 50);
+      const slug = base ? `${base}-${courseId.slice(0, 8)}` : `course-${courseId.slice(0, 8)}`;
+      const { error } = await supabase
+        .from("courses")
+        .update({ ...form, slug })
+        .eq("id", courseId);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["edit-course", courseId] });
+      qc.invalidateQueries({ queryKey: ["my-courses"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("[saveCourse]", e);
+      toast.error(`Save failed: ${e.message}`);
+    },
   });
 
   const publishToggle = useMutation({
     mutationFn: async () => {
+      // Read current status fresh from the cached query data — don't rely on closure
       const isPublished = course!.status === "published";
-      const { error } = await supabase.from("courses")
-        .update({ status: isPublished ? "draft" : "published", published_at: isPublished ? null : new Date().toISOString() })
+      const newStatus = isPublished ? "draft" : "published";
+      const { error } = await supabase
+        .from("courses")
+        .update({
+          status: newStatus,
+          published_at: newStatus === "published" ? new Date().toISOString() : null,
+        })
         .eq("id", courseId);
       if (error) throw error;
+      // Return the new status so onSuccess can use it — not the stale closure value
+      return newStatus;
     },
-    onSuccess: () => {
+    onSuccess: (newStatus) => {
       qc.invalidateQueries({ queryKey: ["edit-course", courseId] });
-      toast.success(course!.status === "published" ? "Unpublished" : "Published to the library");
+      qc.invalidateQueries({ queryKey: ["my-courses"] });
+      toast.success(newStatus === "published" ? "Published to the library" : "Unpublished");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("[publishToggle]", e);
+      toast.error(`Publish failed: ${e.message}`);
+    },
   });
 
   const deleteCourse = useMutation({
@@ -124,12 +150,33 @@ function CourseEditor() {
   async function handleThumb(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    const path = `${user.id}/${courseId}/thumb-${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("course-thumbnails").upload(path, file, { upsert: true });
+
+    // Client-side validation: type and size
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Only JPEG, PNG or WebP images are allowed.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Thumbnail must be 2 MB or smaller.");
+      return;
+    }
+
+    // Fixed path per course — overwrites on re-upload, no accumulation
+    const ext = file.type === "image/webp" ? "webp" : file.type === "image/png" ? "png" : "jpg";
+    const path = `${user.id}/${courseId}/thumbnail.${ext}`;
+
+    const { error } = await supabase.storage
+      .from("course-thumbnails")
+      .upload(path, file, { upsert: true, contentType: file.type });
     if (error) return toast.error(error.message);
+
     await supabase.from("courses").update({ thumbnail_url: path }).eq("id", courseId);
     setForm((f: any) => ({ ...f, thumbnail_url: path }));
-    const { data } = await supabase.storage.from("course-thumbnails").createSignedUrl(path, 3600);
+
+    const { data } = await supabase.storage
+      .from("course-thumbnails")
+      .createSignedUrl(path, 7200);
     setThumbPreview(data?.signedUrl ?? null);
     toast.success("Thumbnail updated");
   }
@@ -218,7 +265,8 @@ function CourseEditor() {
                 </div>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleThumb} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleThumb} />
+            <p className="mt-2 text-[10px] text-muted-foreground text-center">JPEG, PNG or WebP · max 2 MB</p>
           </section>
 
           <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
@@ -335,14 +383,29 @@ function LectureEditor({ lecture, onChange, userId, courseId }: { lecture: Lectu
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
+
+    // Client-side validation: type only (size limit enforced by bucket)
+    const allowed = ["video/mp4", "video/webm"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Only MP4 or WebM videos are allowed.");
+      return;
+    }
+
     setUploading(true);
     try {
-      const path = `${userId}/${courseId}/${lecture.id}-${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("course-videos").upload(path, file, { upsert: true });
+      // Fixed path per lecture — overwrites on re-upload, no accumulation
+      const ext = file.type === "video/webm" ? "webm" : "mp4";
+      const path = `${userId}/${courseId}/${lecture.id}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("course-videos")
+        .upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
 
       const duration = await getVideoDuration(file);
-      await supabase.from("lectures").update({ video_path: path, duration_seconds: Math.round(duration) }).eq("id", lecture.id);
+      await supabase.from("lectures")
+        .update({ video_path: path, duration_seconds: Math.round(duration) })
+        .eq("id", lecture.id);
       toast.success("Video uploaded");
       onChange();
     } catch (e) {

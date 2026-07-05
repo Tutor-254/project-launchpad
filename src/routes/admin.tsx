@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,24 +10,25 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Stars } from "@/components/reviews-section";
 import { EyeOff, Trash2, ShieldOff, CheckCircle2, XCircle } from "lucide-react";
-import { requireAuth, requireRole } from "@/lib/auth-guards";
+import { requireAuth } from "@/lib/auth-guards";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
-    const session = await requireAuth("/admin");
-    const hasRole = await requireRole(session.user.id, "admin");
-    if (!hasRole) throw redirect({ to: "/" });
+    await requireAuth("/admin");
   },
   component: AdminConsole,
 });
 
 function AdminConsole() {
-  const { user } = useAuth();
-  const { isAdmin } = useRoles(user?.id);
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: rolesLoading } = useRoles(user?.id);
+
+  const gateLoading = authLoading || rolesLoading;
 
   // Pending count for badge
   const { data: pendingCount } = useQuery({
     queryKey: ["admin-applications-pending-count"],
+    enabled: !!user && isAdmin,
     queryFn: async () => {
       const { count } = await supabase
         .from("instructor_applications")
@@ -37,6 +38,35 @@ function AdminConsole() {
     },
     refetchInterval: 30_000,
   });
+
+  if (gateLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading admin console…</p>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 flex items-center justify-center px-6">
+          <div className="max-w-md text-center">
+            <h1 className="font-serif text-2xl mb-2">Admin access required</h1>
+            <p className="text-sm text-muted-foreground">
+              Your account does not have the admin role. Ask a project owner to grant it in Supabase.
+            </p>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -80,19 +110,33 @@ function ApplicationsMod() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
-  const { data } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["admin-applications", filter],
     queryFn: async () => {
       let q = supabase
         .from("instructor_applications")
         .select(
-          "id, status, expertise, background, portfolio_url, statement, created_at, reviewed_at, rejection_reason, profiles!instructor_applications_user_id_fkey(display_name)"
+          "id, status, expertise, background, portfolio_url, statement, created_at, reviewed_at, rejection_reason, user_id"
         )
         .order("created_at", { ascending: false })
         .limit(100);
       if (filter !== "all") q = q.eq("status", filter);
-      const { data } = await q;
-      return data ?? [];
+      const { data: apps, error: appsErr } = await q;
+      if (appsErr) throw appsErr;
+      if (!apps?.length) return [];
+
+      const userIds = [...new Set(apps.map((a) => a.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", userIds);
+
+      const nameByUser = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+
+      return apps.map((app) => ({
+        ...app,
+        applicant_name: nameByUser.get(app.user_id) ?? "Unknown user",
+      }));
     },
   });
 
@@ -152,7 +196,15 @@ function ApplicationsMod() {
 
       {/* Applications list */}
       <div className="space-y-4">
-        {data?.length === 0 && (
+        {isLoading && (
+          <p className="text-sm text-muted-foreground py-8 text-center">Loading applications…</p>
+        )}
+        {error && (
+          <p className="text-sm text-destructive py-8 text-center">
+            Failed to load applications: {(error as Error).message}
+          </p>
+        )}
+        {!isLoading && !error && data?.length === 0 && (
           <p className="text-sm text-muted-foreground py-8 text-center">
             No {filter !== "all" ? filter : ""} applications found.
           </p>
@@ -163,7 +215,7 @@ function ApplicationsMod() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="font-medium text-sm">
-                  {(app.profiles as any)?.display_name ?? "Unknown user"}
+                  {app.applicant_name}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Submitted {new Date(app.created_at).toLocaleDateString()}

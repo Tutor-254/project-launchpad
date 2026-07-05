@@ -3,6 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { persistOnboardingIntent } from "@/lib/instructor-onboarding";
 import { SiteHeader } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,13 +86,11 @@ function AuthPage() {
 
   async function handleGoogle() {
     setLoading(true);
-    // After OAuth, Google redirects to origin. We can't pass onboarding intent
-    // through OAuth, so we handle first-time detection in the root onAuthStateChange.
+    persistOnboardingIntent(intent);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}${redirect ?? "/"}`,
-        queryParams: intent === "teach" ? { intent: "teach" } : undefined,
       },
     });
     if (error) {
