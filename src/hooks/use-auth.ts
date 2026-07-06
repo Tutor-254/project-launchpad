@@ -76,7 +76,7 @@ export function useApplicationStatus(userId: string | undefined) {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        setApplicationStatus(data);
+        setApplicationStatus(data as ApplicationStatus | null);
         setLoading(false);
       });
   }, [userId]);
