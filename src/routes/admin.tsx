@@ -2,15 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/use-auth";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Stars } from "@/components/reviews-section";
 import { EyeOff, Trash2, ShieldOff, CheckCircle2, XCircle } from "lucide-react";
 import { requireAuth } from "@/lib/auth-guards";
+import { getPassMark, updatePassMark } from "@/lib/assessment.functions";
+import { getScreeningPassThreshold, updateScreeningPassThreshold } from "@/lib/screening.functions";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
@@ -88,11 +92,15 @@ function AdminConsole() {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="passmark">Pass Mark</TabsTrigger>
+            <TabsTrigger value="screening-threshold">Screening Threshold</TabsTrigger>
           </TabsList>
           <TabsContent value="reviews" className="mt-6"><ReviewsMod /></TabsContent>
           <TabsContent value="questions" className="mt-6"><QuestionsMod /></TabsContent>
           <TabsContent value="courses" className="mt-6"><CoursesMod /></TabsContent>
           <TabsContent value="applications" className="mt-6"><ApplicationsMod /></TabsContent>
+          <TabsContent value="passmark" className="mt-6"><PassMarkConfig /></TabsContent>
+          <TabsContent value="screening-threshold" className="mt-6"><ScreeningThresholdConfig /></TabsContent>
         </Tabs>
       </main>
       <SiteFooter />
@@ -227,9 +235,11 @@ function ApplicationsMod() {
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                   app.status === "pending"
                     ? "border-amber-400 text-amber-600 bg-amber-50 dark:bg-amber-950/30"
-                    : app.status === "approved"
-                      ? "border-green-400 text-green-600 bg-green-50 dark:bg-green-950/30"
-                      : "border-red-400 text-red-600 bg-red-50 dark:bg-red-950/30"
+                    : app.status === "pending_screening"
+                      ? "border-blue-400 text-blue-600 bg-blue-50 dark:bg-blue-950/30"
+                      : app.status === "approved"
+                        ? "border-green-400 text-green-600 bg-green-50 dark:bg-green-950/30"
+                        : "border-red-400 text-red-600 bg-red-50 dark:bg-red-950/30"
                 }`}
               >
                 {app.status}
@@ -519,6 +529,155 @@ function FilterBar({ filter, setFilter }: { filter: "all" | "hidden"; setFilter:
           {f === "all" ? "All" : "Hidden only"}
         </button>
       ))}
+    </div>
+  );
+}
+
+// ─── PassMarkConfig ────────────────────────────────────────────────────────────
+
+function PassMarkConfig() {
+  const getPass = useServerFn(getPassMark);
+  const updatePass = useServerFn(updatePassMark);
+  const [value, setValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["pass-mark"],
+    queryFn: () => getPass({ data: undefined }),
+    onSuccess: (d: any) => setValue(String(d.passMark)),
+  });
+
+  async function handleSave() {
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed < 0 || parsed > 100) {
+      toast.error("Pass mark must be an integer between 0 and 100");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updatePass({ data: { value: parsed } });
+      toast.success(`Pass mark updated to ${parsed}%`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-sm space-y-4">
+      <div>
+        <h2 className="font-serif text-lg mb-1">Assessment Pass Mark</h2>
+        <p className="text-sm text-muted-foreground">
+          The minimum weighted score (0–100) a student must achieve to earn a certificate.
+        </p>
+      </div>
+
+      <div className="flex items-end gap-3">
+        <div className="grid gap-1.5">
+          <label className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+            Pass mark (%)
+          </label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            className="w-24"
+            value={isLoading ? "" : value}
+            disabled={isLoading}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={isLoading ? "…" : "0–100"}
+          />
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={saving || isLoading}
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
+        >
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+
+      {data && (
+        <p className="text-xs text-muted-foreground">
+          Current pass mark: <span className="font-semibold">{data.passMark}%</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── ScreeningThresholdConfig ──────────────────────────────────────────────────
+
+function ScreeningThresholdConfig() {
+  const getThreshold = useServerFn(getScreeningPassThreshold);
+  const updateThreshold = useServerFn(updateScreeningPassThreshold);
+  const [value, setValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["screening-threshold"],
+    queryFn: () => getThreshold({ data: undefined }),
+    onSuccess: (d: any) => setValue(String(d.threshold)),
+  });
+
+  async function handleSave() {
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed < 0 || parsed > 100) {
+      toast.error("Screening threshold must be an integer between 0 and 100");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateThreshold({ data: { threshold: parsed } });
+      toast.success(`Screening threshold updated to ${parsed}%`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-sm space-y-4">
+      <div>
+        <h2 className="font-serif text-lg mb-1">Instructor Screening Threshold</h2>
+        <p className="text-sm text-muted-foreground">
+          The minimum score (0–100) an applicant must achieve on the AI screening test to advance
+          to the admin review waitlist.
+        </p>
+      </div>
+
+      <div className="flex items-end gap-3">
+        <div className="grid gap-1.5">
+          <label className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+            Threshold (%)
+          </label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            className="w-24"
+            value={isLoading ? "" : value}
+            disabled={isLoading}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={isLoading ? "…" : "0–100"}
+          />
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={saving || isLoading}
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
+        >
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+
+      {data && (
+        <p className="text-xs text-muted-foreground">
+          Current threshold: <span className="font-semibold">{data.threshold}%</span>
+        </p>
+      )}
     </div>
   );
 }

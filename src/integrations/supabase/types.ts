@@ -14,11 +14,267 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessments: {
+        Row: {
+          id: string
+          course_id: string
+          type: 'CAT_1' | 'CAT_2' | 'FINAL_EXAM'
+          title: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          course_id: string
+          type: 'CAT_1' | 'CAT_2' | 'FINAL_EXAM'
+          title: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          course_id?: string
+          type?: 'CAT_1' | 'CAT_2' | 'FINAL_EXAM'
+          title?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          id: string
+          assessment_id: string
+          type: 'MCQ' | 'SHORT_ANSWER' | 'ESSAY'
+          stem: string
+          options: Json | null
+          model_answer: string | null
+          rubric: string | null
+          source_ref: string | null
+          status: 'pending_review' | 'approved' | 'rejected'
+          ai_generated: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          assessment_id: string
+          type: 'MCQ' | 'SHORT_ANSWER' | 'ESSAY'
+          stem: string
+          options?: Json | null
+          model_answer?: string | null
+          rubric?: string | null
+          source_ref?: string | null
+          status?: 'pending_review' | 'approved' | 'rejected'
+          ai_generated?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          assessment_id?: string
+          type?: 'MCQ' | 'SHORT_ANSWER' | 'ESSAY'
+          stem?: string
+          options?: Json | null
+          model_answer?: string | null
+          rubric?: string | null
+          source_ref?: string | null
+          status?: 'pending_review' | 'approved' | 'rejected'
+          ai_generated?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      assessment_attempts: {
+        Row: {
+          id: string
+          assessment_id: string
+          student_id: string
+          state: 'in_progress' | 'submitted' | 'graded' | 'pending_review' | 'released'
+          score: number | null
+          preliminary_score: number | null
+          started_at: string
+          submitted_at: string | null
+          released_at: string | null
+          attempt_number: number
+        }
+        Insert: {
+          id?: string
+          assessment_id: string
+          student_id: string
+          state?: 'in_progress' | 'submitted' | 'graded' | 'pending_review' | 'released'
+          score?: number | null
+          preliminary_score?: number | null
+          started_at?: string
+          submitted_at?: string | null
+          released_at?: string | null
+          attempt_number?: number
+        }
+        Update: {
+          id?: string
+          assessment_id?: string
+          student_id?: string
+          state?: 'in_progress' | 'submitted' | 'graded' | 'pending_review' | 'released'
+          score?: number | null
+          preliminary_score?: number | null
+          started_at?: string
+          submitted_at?: string | null
+          released_at?: string | null
+          attempt_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_attempts_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      assessment_responses: {
+        Row: {
+          id: string
+          attempt_id: string
+          question_id: string
+          response_text: string | null
+          selected_option: string | null
+          ai_score: number | null
+          ai_feedback: string | null
+          needs_review: boolean
+          final_score: number | null
+          released: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          attempt_id: string
+          question_id: string
+          response_text?: string | null
+          selected_option?: string | null
+          ai_score?: number | null
+          ai_feedback?: string | null
+          needs_review?: boolean
+          final_score?: number | null
+          released?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          attempt_id?: string
+          question_id?: string
+          response_text?: string | null
+          selected_option?: string | null
+          ai_score?: number | null
+          ai_feedback?: string | null
+          needs_review?: boolean
+          final_score?: number | null
+          released?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_questions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      grade_overrides: {
+        Row: {
+          id: string
+          response_id: string
+          instructor_id: string
+          original_score: number
+          override_score: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          response_id: string
+          instructor_id: string
+          original_score: number
+          override_score: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          response_id?: string
+          instructor_id?: string
+          original_score?: number
+          override_score?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_overrides_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_overrides_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      platform_config: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       instructor_applications: {
         Row: {
           id: string
           user_id: string
-          status: 'pending' | 'approved' | 'rejected'
+          status: 'pending_screening' | 'pending' | 'approved' | 'rejected'
           expertise: string
           background: string
           portfolio_url: string | null
@@ -31,7 +287,7 @@ export type Database = {
         Insert: {
           id?: string
           user_id: string
-          status?: 'pending' | 'approved' | 'rejected'
+          status?: 'pending_screening' | 'pending' | 'approved' | 'rejected'
           expertise: string
           background: string
           portfolio_url?: string | null
@@ -44,7 +300,7 @@ export type Database = {
         Update: {
           id?: string
           user_id?: string
-          status?: 'pending' | 'approved' | 'rejected'
+          status?: 'pending_screening' | 'pending' | 'approved' | 'rejected'
           expertise?: string
           background?: string
           portfolio_url?: string | null
@@ -69,6 +325,107 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      screening_attempts: {
+        Row: {
+          id: string
+          application_id: string
+          applicant_id: string
+          state: 'in_progress' | 'passed' | 'failed'
+          score: number | null
+          started_at: string
+          submitted_at: string | null
+        }
+        Insert: {
+          id?: string
+          application_id: string
+          applicant_id: string
+          state?: 'in_progress' | 'passed' | 'failed'
+          score?: number | null
+          started_at?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          id?: string
+          application_id?: string
+          applicant_id?: string
+          state?: 'in_progress' | 'passed' | 'failed'
+          score?: number | null
+          started_at?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_attempts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "instructor_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screening_attempts_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      screening_responses: {
+        Row: {
+          id: string
+          attempt_id: string
+          question_index: number
+          question_stem: string
+          question_type: 'MCQ' | 'SHORT_ANSWER'
+          options: Json | null
+          rubric: string
+          model_answer: string | null
+          response_text: string | null
+          selected_option: string | null
+          ai_score: number | null
+          ai_feedback: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          attempt_id: string
+          question_index: number
+          question_stem: string
+          question_type: 'MCQ' | 'SHORT_ANSWER'
+          options?: Json | null
+          rubric: string
+          model_answer?: string | null
+          response_text?: string | null
+          selected_option?: string | null
+          ai_score?: number | null
+          ai_feedback?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          attempt_id?: string
+          question_index?: number
+          question_stem?: string
+          question_type?: 'MCQ' | 'SHORT_ANSWER'
+          options?: Json | null
+          rubric?: string
+          model_answer?: string | null
+          response_text?: string | null
+          selected_option?: string | null
+          ai_score?: number | null
+          ai_feedback?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "screening_attempts"
+            referencedColumns: ["id"]
+          }
         ]
       }
       answers: {
@@ -397,63 +754,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      instructor_applications: {
-        Row: {
-          id: string
-          user_id: string
-          status: 'pending' | 'approved' | 'rejected'
-          expertise: string
-          background: string
-          portfolio_url: string | null
-          statement: string
-          rejection_reason: string | null
-          reviewed_by: string | null
-          reviewed_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          status?: 'pending' | 'approved' | 'rejected'
-          expertise: string
-          background: string
-          portfolio_url?: string | null
-          statement: string
-          rejection_reason?: string | null
-          reviewed_by?: string | null
-          reviewed_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          status?: 'pending' | 'approved' | 'rejected'
-          expertise?: string
-          background?: string
-          portfolio_url?: string | null
-          statement?: string
-          rejection_reason?: string | null
-          reviewed_by?: string | null
-          reviewed_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "instructor_applications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "instructor_applications_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -944,10 +1244,6 @@ export type Database = {
         Args: { application_id: string }
         Returns: undefined
       }
-      approve_instructor_application: {
-        Args: { application_id: string }
-        Returns: undefined
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -959,8 +1255,16 @@ export type Database = {
         Args: { application_id: string; reason?: string }
         Returns: undefined
       }
-      reject_instructor_application: {
-        Args: { application_id: string; reason?: string }
+      compute_weighted_score: {
+        Args: { p_student_id: string; p_course_id: string }
+        Returns: number | null
+      }
+      get_lecture_completion_pct: {
+        Args: { p_student_id: string; p_course_id: string }
+        Returns: number
+      }
+      reset_student_attempts: {
+        Args: { p_assessment_id: string; p_student_id: string }
         Returns: undefined
       }
     }

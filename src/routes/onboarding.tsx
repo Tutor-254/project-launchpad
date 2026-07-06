@@ -52,6 +52,10 @@ export const Route = createFileRoute("/onboarding")({
       throw redirect({ to: "/apply" });
     }
 
+    if (latestApp?.status === "pending_screening") {
+      throw redirect({ to: "/apply" });
+    }
+
     if (latestApp?.status === "approved") {
       throw redirect({ to: "/apply" });
     }
@@ -219,13 +223,18 @@ function OnboardingPage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase.from("instructor_applications").insert({
-        user_id: user.id,
-        expertise: appForm.expertise.trim(),
-        background: appForm.background.trim(),
-        portfolio_url: appForm.portfolioUrl.trim() || null,
-        statement: appForm.statement.trim(),
-      });
+      const { data, error } = await supabase
+        .from("instructor_applications")
+        .insert({
+          user_id: user.id,
+          status: "pending_screening",
+          expertise: appForm.expertise.trim(),
+          background: appForm.background.trim(),
+          portfolio_url: appForm.portfolioUrl.trim() || null,
+          statement: appForm.statement.trim(),
+        })
+        .select("id")
+        .single();
 
       if (error) {
         if (error.code === "23505") {
@@ -236,7 +245,7 @@ function OnboardingPage() {
         throw error;
       }
 
-      navigate({ to: "/apply" });
+      navigate({ to: "/screening", search: { applicationId: data.id } });
     } catch (err) {
       toast.error((err as Error).message);
     } finally {

@@ -14,6 +14,7 @@ import { QASection } from "@/components/qa-section";
 import { ReviewsSection } from "@/components/reviews-section";
 import { issueCertificateIfComplete } from "@/lib/certificates.functions";
 import { requireAuth } from "@/lib/auth-guards";
+import { AssessmentPanel } from "@/components/assessment/assessment-panel";
 
 export const Route = createFileRoute("/learn/$courseId")({
   beforeLoad: async () => {
@@ -86,14 +87,26 @@ function LearnPlayer() {
   useEffect(() => {
     setVideoUrl(null);
     if (!activeLecture?.video_path) return;
-    supabase.storage.from("course-videos").createSignedUrl(activeLecture.video_path, 3600).then(({ data }) => {
-      setVideoUrl(data?.signedUrl ?? null);
-    });
+    let cancelled = false;
+    supabase.storage
+      .from("course-videos")
+      .createSignedUrl(activeLecture.video_path, 7200)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.signedUrl) {
+          console.error("[video signed URL]", error?.message ?? "no URL returned", "path:", activeLecture.video_path);
+          // Signal to the player that the path exists but signing failed
+          setVideoUrl("ERROR");
+          return;
+        }
+        setVideoUrl(data.signedUrl);
+      });
+    return () => { cancelled = true; };
   }, [activeLecture?.video_path]);
 
   // Restore playback position on load
   useEffect(() => {
-    if (!videoUrl || !videoRef.current || !activeLectureId) return;
+    if (!videoUrl || videoUrl === "ERROR" || !videoRef.current || !activeLectureId) return;
     const start = positionMap.get(activeLectureId) ?? 0;
     if (start > 3) {
       try { videoRef.current.currentTime = start; } catch { /* ignore */ }
@@ -102,7 +115,7 @@ function LearnPlayer() {
 
   // Persist position every 10s while playing
   useEffect(() => {
-    if (!user || !activeLectureId) return;
+    if (!user || !activeLectureId || !videoUrl || videoUrl === "ERROR") return;
     const el = videoRef.current;
     if (!el) return;
     let last = 0;
@@ -180,7 +193,12 @@ function LearnPlayer() {
       <main className="flex-1 grid lg:grid-cols-[1fr_360px]">
         <div className="bg-black flex flex-col">
           {activeLecture ? (
-            videoUrl ? (
+            videoUrl === "ERROR" ? (
+              <div className="w-full aspect-video flex flex-col items-center justify-center text-white/60 gap-2">
+                <PlayCircle className="size-10 opacity-40" />
+                <span className="text-sm">Video unavailable — the instructor may need to re-upload this lecture.</span>
+              </div>
+            ) : videoUrl ? (
               <video
                 key={activeLecture.id}
                 ref={videoRef}
@@ -221,12 +239,16 @@ function LearnPlayer() {
               <TabsList>
                 <TabsTrigger value="qa">Q&amp;A</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                <TabsTrigger value="assessments">Assessments</TabsTrigger>
               </TabsList>
               <TabsContent value="qa" className="mt-6">
                 <QASection courseId={courseId} lectureId={activeLectureId} canPost={true} />
               </TabsContent>
               <TabsContent value="reviews" className="mt-6">
                 <ReviewsSection courseId={courseId} canReview={true} />
+              </TabsContent>
+              <TabsContent value="assessments" className="mt-6">
+                <AssessmentPanel courseId={courseId} certCode={certCode} />
               </TabsContent>
             </Tabs>
           </div>

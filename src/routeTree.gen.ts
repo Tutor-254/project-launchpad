@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as CertificatesRouteImport } from './routes/certificates'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ScreeningRouteImport } from './routes/screening'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -60,6 +61,11 @@ const CertificatesRoute = CertificatesRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreeningRoute = ScreeningRouteImport.update({
+  id: '/screening',
+  path: '/screening',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplyRoute = ApplyRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/certificates': typeof CertificatesRoute
   '/onboarding': typeof OnboardingRoute
+  '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/certificates': typeof CertificatesRoute
   '/onboarding': typeof OnboardingRoute
+  '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/certificates': typeof CertificatesRoute
   '/onboarding': typeof OnboardingRoute
+  '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/certificates'
     | '/onboarding'
+    | '/screening'
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/certificates'
     | '/onboarding'
+    | '/screening'
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/certificates'
     | '/onboarding'
+    | '/screening'
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CertificatesRoute: typeof CertificatesRoute
   OnboardingRoute: typeof OnboardingRoute
+  ScreeningRoute: typeof ScreeningRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeachRoute: typeof TeachRoute
   WishlistRoute: typeof WishlistRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screening': {
+      id: '/screening'
+      path: '/screening'
+      fullPath: '/screening'
+      preLoaderRoute: typeof ScreeningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/certificates': {
@@ -482,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CertificatesRoute: CertificatesRoute,
   OnboardingRoute: OnboardingRoute,
+  ScreeningRoute: ScreeningRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeachRoute: TeachRoute,
   WishlistRoute: WishlistRoute,

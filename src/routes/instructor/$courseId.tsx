@@ -11,8 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, ImageIcon, Plus, Trash2, UploadCloud, Video } from "lucide-react";
 import { requireAuth, requireRole, requireNoApplicationPending } from "@/lib/auth-guards";
+import { AssessmentsDashboard } from "@/components/assessment/assessments-dashboard";
+import { EssayReviewPanel } from "@/components/assessment/essay-review-panel";
 
 export const Route = createFileRoute("/instructor/$courseId")({
   beforeLoad: async () => {
@@ -214,101 +217,117 @@ function CourseEditor() {
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-10">
-        <div className="md:col-span-2 space-y-10">
-          <section className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="font-serif text-xl mb-4">Basics</h2>
-            <div className="space-y-4">
-              <Field label="Title">
-                <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-              </Field>
-              <Field label="Subtitle">
-                <Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
-              </Field>
-              <Field label="Description">
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={8} />
-              </Field>
-            </div>
-          </section>
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <Tabs defaultValue="curriculum">
+          <TabsList className="mb-8">
+            <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+            <TabsTrigger value="assessments">Assessments</TabsTrigger>
+          </TabsList>
 
-          <section className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-xl">Curriculum</h2>
-              <Button variant="outline" size="sm" onClick={() => addSection.mutate()}>
-                <Plus className="mr-1 size-4" /> Add section
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {sections.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">No sections yet.</p>
-              )}
-              {sections.map((s) => (
-                <SectionEditor key={s.id} section={s} courseId={courseId} onChange={() => qc.invalidateQueries({ queryKey: ["edit-course", courseId] })} />
-              ))}
-            </div>
-          </section>
-        </div>
+          <TabsContent value="curriculum">
+            <div className="grid md:grid-cols-3 gap-10">
+              <div className="md:col-span-2 space-y-10">
+                <section className="bg-card border border-border rounded-2xl p-6">
+                  <h2 className="font-serif text-xl mb-4">Basics</h2>
+                  <div className="space-y-4">
+                    <Field label="Title">
+                      <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                    </Field>
+                    <Field label="Subtitle">
+                      <Input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+                    </Field>
+                    <Field label="Description">
+                      <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={8} />
+                    </Field>
+                  </div>
+                </section>
 
-        <aside className="space-y-6">
-          <section className="bg-card border border-border rounded-2xl p-6">
-            <h3 className="font-serif text-lg mb-4">Thumbnail</h3>
-            <div
-              onClick={() => fileRef.current?.click()}
-              className="aspect-video bg-secondary rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-border hover:border-brand"
-            >
-              {thumbPreview ? (
-                <img src={thumbPreview} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <ImageIcon className="size-8 mx-auto mb-2" />
-                  <div className="text-xs">Click to upload</div>
-                </div>
-              )}
+                <section className="bg-card border border-border rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-serif text-xl">Curriculum</h2>
+                    <Button variant="outline" size="sm" onClick={() => addSection.mutate()}>
+                      <Plus className="mr-1 size-4" /> Add section
+                    </Button>
+                  </div>
+                  <div className="space-y-4">
+                    {sections.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-8">No sections yet.</p>
+                    )}
+                    {sections.map((s) => (
+                      <SectionEditor key={s.id} section={s} courseId={courseId} onChange={() => qc.invalidateQueries({ queryKey: ["edit-course", courseId] })} />
+                    ))}
+                  </div>
+                </section>
+              </div>
+
+              <aside className="space-y-6">
+                <section className="bg-card border border-border rounded-2xl p-6">
+                  <h3 className="font-serif text-lg mb-4">Thumbnail</h3>
+                  <div
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-video bg-secondary rounded-lg flex items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-border hover:border-brand"
+                  >
+                    {thumbPreview ? (
+                      <img src={thumbPreview} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        <ImageIcon className="size-8 mx-auto mb-2" />
+                        <div className="text-xs">Click to upload</div>
+                      </div>
+                    )}
+                  </div>
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleThumb} />
+                  <p className="mt-2 text-[10px] text-muted-foreground text-center">JPEG, PNG or WebP · max 2 MB</p>
+                </section>
+
+                <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
+                  <h3 className="font-serif text-lg">Details</h3>
+                  <Field label="Category">
+                    <Select value={form.category_id ?? ""} onValueChange={(v) => setForm({ ...form, category_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                      <SelectContent>
+                        {cats?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Level">
+                    <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="Price (KES)">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={form.price_cents / 100}
+                      onChange={(e) => setForm({ ...form, price_cents: Math.max(0, Math.round(Number(e.target.value) * 100)) })}
+                    />
+                  </Field>
+                  <Field label="Language">
+                    <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} />
+                  </Field>
+                </section>
+
+                <button
+                  onClick={() => confirm("Delete this course? This cannot be undone.") && deleteCourse.mutate()}
+                  className="text-xs text-destructive hover:underline flex items-center gap-1"
+                >
+                  <Trash2 className="size-3" /> Delete course
+                </button>
+              </aside>
             </div>
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleThumb} />
-            <p className="mt-2 text-[10px] text-muted-foreground text-center">JPEG, PNG or WebP · max 2 MB</p>
-          </section>
+          </TabsContent>
 
-          <section className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <h3 className="font-serif text-lg">Details</h3>
-            <Field label="Category">
-              <Select value={form.category_id ?? ""} onValueChange={(v) => setForm({ ...form, category_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
-                <SelectContent>
-                  {cats?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Level">
-              <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Price (KES)">
-              <Input
-                type="number"
-                min={0}
-                value={form.price_cents / 100}
-                onChange={(e) => setForm({ ...form, price_cents: Math.max(0, Math.round(Number(e.target.value) * 100)) })}
-              />
-            </Field>
-            <Field label="Language">
-              <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} />
-            </Field>
-          </section>
-
-          <button
-            onClick={() => confirm("Delete this course? This cannot be undone.") && deleteCourse.mutate()}
-            className="text-xs text-destructive hover:underline flex items-center gap-1"
-          >
-            <Trash2 className="size-3" /> Delete course
-          </button>
-        </aside>
+          <TabsContent value="assessments" className="space-y-8">
+            <AssessmentsDashboard courseId={courseId} />
+            <EssayReviewPanel courseId={courseId} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

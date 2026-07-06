@@ -1,0 +1,60 @@
+-- ============================================================
+-- Migration: 20260705000004_update_certificate_gate.sql
+-- Purpose:   Documentation migration — certificate gate has moved
+--            from the database layer to the application layer.
+-- ============================================================
+--
+-- IMPORTANT ARCHITECTURAL NOTE
+-- ─────────────────────────────
+-- Prior to this feature, certificate issuance was gated solely on
+-- lecture completion (counting rows in `lecture_progress`). That
+-- logic lived inline in the server function and was triggered
+-- whenever a student marked the final lecture complete.
+--
+-- As of the AI Learner Assessment feature, the gate has been
+-- replaced entirely. The new logic lives in:
+--
+--   src/lib/certificates.functions.ts  →  issueCertificateIfComplete
+--
+-- NEW CERTIFICATE ISSUANCE FLOW
+-- ─────────────────────────────
+-- A certificate is issued only when ALL of the following conditions
+-- are satisfied (checked in order):
+--
+--   (a) ENROLLMENT CHECK
+--       The student must have an active row in the `enrollments`
+--       table for the given course.
+--
+--   (b) ALL THREE ASSESSMENTS RELEASED
+--       The student must have at least one attempt in `released`
+--       state for each of the three assessment types:
+--         • CAT_1   (Continuous Assessment Test 1)
+--         • CAT_2   (Continuous Assessment Test 2)
+--         • FINAL_EXAM
+--       This is verified via the `assessment_attempts` table joined
+--       through `assessments` (course_id, type).
+--
+--   (c) WEIGHTED SCORE ≥ PASS MARK
+--       The Postgres function `compute_weighted_score(student_id,
+--       course_id)` is called via Supabase RPC.  It returns:
+--
+--         (best_cat1_score × 0.15)
+--       + (best_cat2_score × 0.15)
+--       + (best_final_score × 0.70)
+--
+--       The resulting weighted score (0–100) must be greater than or
+--       equal to the `pass_mark` value stored in `platform_config`.
+--       The default pass mark is 60 (set in migration 20260705000001).
+--
+-- The old lecture-progress counting block has been removed from
+-- `issueCertificateIfComplete` and is no longer part of the gate.
+--
+-- ============================================================
+
+-- Guard insert for the platform_config pass_mark default row.
+-- Migration 20260705000001 already seeds this row; the ON CONFLICT
+-- DO NOTHING clause makes this idempotent in case migrations are
+-- applied in an unusual order or the row was accidentally removed.
+INSERT INTO public.platform_config (key, value)
+VALUES ('pass_mark', '60')
+ON CONFLICT DO NOTHING;

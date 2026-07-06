@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle2, XCircle, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Loader2, ArrowRight, RefreshCw, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles, useApplicationStatus } from "@/hooks/use-auth";
 import { requireAuth } from "@/lib/auth-guards";
@@ -97,6 +97,9 @@ export function ApplyPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-16">
         {(applicationStatus?.status === "approved" || isInstructor) && (
           <ApprovedState />
+        )}
+        {applicationStatus?.status === "pending_screening" && (
+          <ScreeningState applicationId={applicationStatus.id} />
         )}
         {applicationStatus?.status === "pending" && (
           <PendingState createdAt={applicationStatus.created_at} />
@@ -205,6 +208,63 @@ export function PendingState({ createdAt }: { createdAt: string }) {
         or{" "}
         <Link to="/learn" className="text-brand hover:underline">
           learning
+        </Link>
+        .
+      </p>
+    </div>
+  );
+}
+
+export function ScreeningState({ applicationId }: { applicationId: string }) {
+  return (
+    <div className="max-w-lg w-full">
+      <div className="text-center mb-8">
+        <div className="size-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6">
+          <ClipboardList className="size-8" />
+        </div>
+        <h1 className="font-serif text-3xl mb-3">One more step</h1>
+        <p className="text-muted-foreground">
+          Before your application is reviewed, you need to complete a short AI-generated
+          screening test based on your stated area of expertise.
+        </p>
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <div className="flex items-start gap-3">
+            <div className="size-5 bg-brand/10 text-brand rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-[10px] font-bold">1</span>
+            </div>
+            <p>You'll be given a short set of questions tailored to your expertise.</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="size-5 bg-brand/10 text-brand rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-[10px] font-bold">2</span>
+            </div>
+            <p>Answer each question to the best of your ability — there's no time limit.</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="size-5 bg-brand/10 text-brand rounded-full flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-[10px] font-bold">3</span>
+            </div>
+            <p>
+              If you pass, your application moves to admin review. If not, you'll see detailed
+              feedback and can reapply after 30 days.
+            </p>
+          </div>
+        </div>
+
+        <Link to="/screening" search={{ applicationId }}>
+          <Button className="w-full bg-brand text-brand-foreground hover:bg-brand/90 mt-2">
+            Start screening test <ArrowRight className="ml-2 size-4" />
+          </Button>
+        </Link>
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground mt-6">
+        While you prepare, feel free to{" "}
+        <Link to="/courses" className="text-brand hover:underline">
+          browse courses
         </Link>
         .
       </p>

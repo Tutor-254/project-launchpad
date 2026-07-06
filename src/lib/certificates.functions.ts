@@ -18,7 +18,7 @@ export const issueCertificateIfComplete = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { courseId } = data;
 
-    // Existing cert?
+    // Idempotency: return existing cert without re-inserting
     const { data: existing } = await supabase
       .from("certificates")
       .select("id, code")
@@ -36,28 +36,57 @@ export const issueCertificateIfComplete = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!enrol) throw new Error("Not enrolled");
 
-    // Count lectures and completed lectures
-    const { data: secs } = await supabase
-      .from("course_sections")
-      .select("lectures(id)")
-      .eq("course_id", courseId);
-    const lectureIds: string[] = (secs ?? []).flatMap((s: any) => (s.lectures ?? []).map((l: any) => l.id));
-    if (lectureIds.length === 0) throw new Error("Course has no lectures");
+    // (a) Compute weighted assessment score via RPC
+    const { data: weightedScore, error: rpcErr } = await supabase.rpc(
+      "compute_weighted_score",
+      { p_student_id: userId, p_course_id: courseId },
+    );
+    if (rpcErr) throw new Error(rpcErr.message);
+    if (weightedScore === null) throw new Error("No released assessment scores yet");
 
-    const { data: done } = await supabase
-      .from("lecture_progress")
-      .select("lecture_id")
-      .eq("user_id", userId)
-      .eq("completed", true)
-      .in("lecture_id", lectureIds);
-    if ((done?.length ?? 0) < lectureIds.length) {
-      throw new Error("Course not yet completed");
+    // (b) Verify all three assessment types have at least one released attempt
+    const { data: assessments } = await supabase
+      .from("assessments")
+      .select("id, type")
+      .eq("course_id", courseId);
+
+    const assessmentIds = (assessments ?? []).map((a) => a.id);
+    if (assessmentIds.length < 3) throw new Error("Course does not have all three assessments yet");
+
+    const { data: releasedAttempts } = await supabase
+      .from("assessment_attempts")
+      .select("assessment_id")
+      .eq("student_id", userId)
+      .eq("state", "released")
+      .in("assessment_id", assessmentIds);
+
+    const releasedAssessmentIds = new Set((releasedAttempts ?? []).map((a) => a.assessment_id));
+    const allReleased = assessmentIds.every((id) => releasedAssessmentIds.has(id));
+    if (!allReleased) throw new Error("Not all assessments have a released attempt");
+
+    // (c) Read pass_mark from platform_config
+    const { data: pmRow } = await supabase
+      .from("platform_config")
+      .select("value")
+      .eq("key", "pass_mark")
+      .maybeSingle();
+    const passMark = pmRow ? parseInt(pmRow.value, 10) : 60;
+
+    // (d) Weighted score must meet pass mark
+    if (weightedScore < passMark) {
+      throw new Error(
+        `Weighted score ${weightedScore.toFixed(1)} is below the pass mark of ${passMark}`,
+      );
     }
 
+    // Issue certificate with collision-safe code
     let code = makeCode();
-    // Retry on rare collision
     for (let i = 0; i < 3; i++) {
-      const { data: clash } = await supabase.from("certificates").select("id").eq("code", code).maybeSingle();
+      const { data: clash } = await supabase
+        .from("certificates")
+        .select("id")
+        .eq("code", code)
+        .maybeSingle();
       if (!clash) break;
       code = makeCode();
     }

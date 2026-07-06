@@ -6,7 +6,7 @@ export type AppRole = "student" | "instructor" | "admin";
 
 export interface ApplicationStatus {
   id: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending_screening' | 'pending' | 'approved' | 'rejected';
   created_at: string;
   reviewed_at: string | null;
   rejection_reason: string | null;
