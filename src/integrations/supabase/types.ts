@@ -62,6 +62,205 @@ export type Database = {
           },
         ]
       }
+      assessment_attempts: {
+        Row: {
+          assessment_id: string
+          attempt_number: number
+          id: string
+          preliminary_score: number | null
+          released_at: string | null
+          score: number | null
+          started_at: string
+          state: string
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assessment_id: string
+          attempt_number?: number
+          id?: string
+          preliminary_score?: number | null
+          released_at?: string | null
+          score?: number | null
+          started_at?: string
+          state?: string
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          attempt_number?: number
+          id?: string
+          preliminary_score?: number | null
+          released_at?: string | null
+          score?: number | null
+          started_at?: string
+          state?: string
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_attempts_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_attempts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          ai_generated: boolean
+          assessment_id: string
+          created_at: string
+          id: string
+          model_answer: string | null
+          options: Json | null
+          rubric: string | null
+          source_ref: string | null
+          status: string
+          stem: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          assessment_id: string
+          created_at?: string
+          id?: string
+          model_answer?: string | null
+          options?: Json | null
+          rubric?: string | null
+          source_ref?: string | null
+          status?: string
+          stem: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          model_answer?: string | null
+          options?: Json | null
+          rubric?: string | null
+          source_ref?: string | null
+          status?: string
+          stem?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_responses: {
+        Row: {
+          ai_feedback: string | null
+          ai_score: number | null
+          attempt_id: string
+          created_at: string
+          final_score: number | null
+          id: string
+          needs_review: boolean
+          question_id: string
+          released: boolean
+          response_text: string | null
+          selected_option: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_score?: number | null
+          attempt_id: string
+          created_at?: string
+          final_score?: number | null
+          id?: string
+          needs_review?: boolean
+          question_id: string
+          released?: boolean
+          response_text?: string | null
+          selected_option?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_score?: number | null
+          attempt_id?: string
+          created_at?: string
+          final_score?: number | null
+          id?: string
+          needs_review?: boolean
+          question_id?: string
+          released?: boolean
+          response_text?: string | null
+          selected_option?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          title: string
+          type: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -340,6 +539,48 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grade_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          instructor_id: string
+          original_score: number
+          override_score: number
+          response_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructor_id: string
+          original_score: number
+          override_score: number
+          response_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructor_id?: string
+          original_score?: number
+          override_score?: number
+          response_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_overrides_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grade_overrides_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_responses"
             referencedColumns: ["id"]
           },
         ]
@@ -647,6 +888,21 @@ export type Database = {
           },
         ]
       }
+      platform_config: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -816,6 +1072,107 @@ export type Database = {
           },
         ]
       }
+      screening_attempts: {
+        Row: {
+          applicant_id: string
+          application_id: string
+          id: string
+          score: number | null
+          started_at: string
+          state: string
+          submitted_at: string | null
+        }
+        Insert: {
+          applicant_id: string
+          application_id: string
+          id?: string
+          score?: number | null
+          started_at?: string
+          state?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          applicant_id?: string
+          application_id?: string
+          id?: string
+          score?: number | null
+          started_at?: string
+          state?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_attempts_applicant_id_fkey"
+            columns: ["applicant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screening_attempts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "instructor_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screening_responses: {
+        Row: {
+          ai_feedback: string | null
+          ai_score: number | null
+          attempt_id: string
+          created_at: string
+          id: string
+          model_answer: string | null
+          options: Json | null
+          question_index: number
+          question_stem: string
+          question_type: string
+          response_text: string | null
+          rubric: string
+          selected_option: string | null
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_score?: number | null
+          attempt_id: string
+          created_at?: string
+          id?: string
+          model_answer?: string | null
+          options?: Json | null
+          question_index: number
+          question_stem: string
+          question_type: string
+          response_text?: string | null
+          rubric: string
+          selected_option?: string | null
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_score?: number | null
+          attempt_id?: string
+          created_at?: string
+          id?: string
+          model_answer?: string | null
+          options?: Json | null
+          question_index?: number
+          question_stem?: string
+          question_type?: string
+          response_text?: string | null
+          rubric?: string
+          selected_option?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "screening_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -872,6 +1229,14 @@ export type Database = {
         Args: { application_id: string }
         Returns: undefined
       }
+      compute_weighted_score: {
+        Args: { p_course_id: string; p_student_id: string }
+        Returns: number
+      }
+      get_lecture_completion_pct: {
+        Args: { p_course_id: string; p_student_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -881,6 +1246,10 @@ export type Database = {
       }
       reject_instructor_application: {
         Args: { application_id: string; reason?: string }
+        Returns: undefined
+      }
+      reset_student_attempts: {
+        Args: { p_assessment_id: string; p_student_id: string }
         Returns: undefined
       }
     }
