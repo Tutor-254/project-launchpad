@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,7 +167,7 @@ function ApplicationsMod() {
     mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
       const { error } = await supabase.rpc("reject_instructor_application", {
         application_id: applicationId,
-        reason: reason || null,
+        reason: reason || "",
       });
       if (error) throw error;
     },
@@ -541,11 +541,11 @@ function PassMarkConfig() {
   const [value, setValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{ passMark: number }>({
     queryKey: ["pass-mark"],
     queryFn: () => getPass({ data: undefined }),
-    onSuccess: (d: any) => setValue(String(d.passMark)),
   });
+  useEffect(() => { if (data) setValue(String(data.passMark)); }, [data]);
 
   async function handleSave() {
     const parsed = parseInt(value, 10);
@@ -615,11 +615,11 @@ function ScreeningThresholdConfig() {
   const [value, setValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{ threshold: number }>({
     queryKey: ["screening-threshold"],
     queryFn: () => getThreshold({ data: undefined }),
-    onSuccess: (d: any) => setValue(String(d.threshold)),
   });
+  useEffect(() => { if (data) setValue(String(data.threshold)); }, [data]);
 
   async function handleSave() {
     const parsed = parseInt(value, 10);
