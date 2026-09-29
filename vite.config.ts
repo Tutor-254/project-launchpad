@@ -12,4 +12,16 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      watch: {
+        // Exclude routeTree.gen.ts from triggering reloads to prevent infinite loops
+        ignored: ["**/routeTree.gen.ts"],
+      },
+      // Increase watchOptions debounce to prevent file conflicts on Windows
+      fs: {
+        cachedChecks: true,
+      },
+    },
+  },
 });

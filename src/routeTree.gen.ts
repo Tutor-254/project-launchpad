@@ -31,7 +31,22 @@ import { Route as InstructorPayoutsRouteImport } from './routes/instructor/payou
 import { Route as InstructorAnalyticsRouteImport } from './routes/instructor/analytics'
 import { Route as InstructorCourseIdRouteImport } from './routes/instructor/$courseId'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses/$courseId'
+import { Route as CertificatesCompetencyProfileRouteImport } from './routes/certificates/competency-profile'
+import { Route as AdminAiSettingsRouteImport } from './routes/admin/ai-settings'
+import { Route as VerifyBadgeBadgeCodeRouteImport } from './routes/verify/badge/$badgeCode'
+import { Route as LearnCourseIdDiagnosticRouteImport } from './routes/learn/$courseId/diagnostic'
+import { Route as LearnCourseIdCompetenciesRouteImport } from './routes/learn/$courseId/competencies'
+import { Route as InstructorCourseIdGradingRouteImport } from './routes/instructor/$courseId/grading'
+import { Route as LearnCourseIdCompetencyIdProjectRouteImport } from './routes/learn/$courseId/$competencyId/project'
+import { Route as LearnCourseIdCompetencyIdAssessmentRouteImport } from './routes/learn/$courseId/$competencyId/assessment'
 import { Route as ApiPublicMpesaCallbackRouteImport } from './routes/api/public/mpesa/callback'
+import { Route as ApiAiHintsGenerateRouteImport } from './routes/api/ai/hints/generate'
+import { Route as ApiAiFeedbackGenerateRouteImport } from './routes/api/ai/feedback/generate'
+import { Route as ApiAiCourseIntelligenceExtractRouteImport } from './routes/api/ai/course-intelligence/extract'
+import { Route as ApiAiConfigTestRouteImport } from './routes/api/ai/config/test'
+import { Route as ApiAiConfigSetRouteImport } from './routes/api/ai/config/set'
+import { Route as ApiAiConfigListRouteImport } from './routes/api/ai/config/list'
+import { Route as ApiAiAssessmentsGenerateRouteImport } from './routes/api/ai/assessments/generate'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -143,28 +158,112 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificatesCompetencyProfileRoute =
+  CertificatesCompetencyProfileRouteImport.update({
+    id: '/competency-profile',
+    path: '/competency-profile',
+    getParentRoute: () => CertificatesRoute,
+  } as any)
+const AdminAiSettingsRoute = AdminAiSettingsRouteImport.update({
+  id: '/ai-settings',
+  path: '/ai-settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const VerifyBadgeBadgeCodeRoute = VerifyBadgeBadgeCodeRouteImport.update({
+  id: '/verify/badge/$badgeCode',
+  path: '/verify/badge/$badgeCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnCourseIdDiagnosticRoute = LearnCourseIdDiagnosticRouteImport.update({
+  id: '/diagnostic',
+  path: '/diagnostic',
+  getParentRoute: () => LearnCourseIdRoute,
+} as any)
+const LearnCourseIdCompetenciesRoute =
+  LearnCourseIdCompetenciesRouteImport.update({
+    id: '/competencies',
+    path: '/competencies',
+    getParentRoute: () => LearnCourseIdRoute,
+  } as any)
+const InstructorCourseIdGradingRoute =
+  InstructorCourseIdGradingRouteImport.update({
+    id: '/grading',
+    path: '/grading',
+    getParentRoute: () => InstructorCourseIdRoute,
+  } as any)
+const LearnCourseIdCompetencyIdProjectRoute =
+  LearnCourseIdCompetencyIdProjectRouteImport.update({
+    id: '/$competencyId/project',
+    path: '/$competencyId/project',
+    getParentRoute: () => LearnCourseIdRoute,
+  } as any)
+const LearnCourseIdCompetencyIdAssessmentRoute =
+  LearnCourseIdCompetencyIdAssessmentRouteImport.update({
+    id: '/$competencyId/assessment',
+    path: '/$competencyId/assessment',
+    getParentRoute: () => LearnCourseIdRoute,
+  } as any)
 const ApiPublicMpesaCallbackRoute = ApiPublicMpesaCallbackRouteImport.update({
   id: '/api/public/mpesa/callback',
   path: '/api/public/mpesa/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiHintsGenerateRoute = ApiAiHintsGenerateRouteImport.update({
+  id: '/api/ai/hints/generate',
+  path: '/api/ai/hints/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiFeedbackGenerateRoute = ApiAiFeedbackGenerateRouteImport.update({
+  id: '/api/ai/feedback/generate',
+  path: '/api/ai/feedback/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiCourseIntelligenceExtractRoute =
+  ApiAiCourseIntelligenceExtractRouteImport.update({
+    id: '/api/ai/course-intelligence/extract',
+    path: '/api/ai/course-intelligence/extract',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAiConfigTestRoute = ApiAiConfigTestRouteImport.update({
+  id: '/api/ai/config/test',
+  path: '/api/ai/config/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiConfigSetRoute = ApiAiConfigSetRouteImport.update({
+  id: '/api/ai/config/set',
+  path: '/api/ai/config/set',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiConfigListRoute = ApiAiConfigListRouteImport.update({
+  id: '/api/ai/config/list',
+  path: '/api/ai/config/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiAssessmentsGenerateRoute =
+  ApiAiAssessmentsGenerateRouteImport.update({
+    id: '/api/ai/assessments/generate',
+    path: '/api/ai/assessments/generate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
-  '/certificates': typeof CertificatesRoute
+  '/certificates': typeof CertificatesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
+  '/certificates/competency-profile': typeof CertificatesCompetencyProfileRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/instructor/$courseId': typeof InstructorCourseIdRoute
+  '/instructor/$courseId': typeof InstructorCourseIdRouteWithChildren
   '/instructor/analytics': typeof InstructorAnalyticsRoute
   '/instructor/payouts': typeof InstructorPayoutsRoute
-  '/learn/$courseId': typeof LearnCourseIdRoute
+  '/learn/$courseId': typeof LearnCourseIdRouteWithChildren
   '/settings/orders': typeof SettingsOrdersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/u/$username': typeof UUsernameRoute
@@ -172,24 +271,39 @@ export interface FileRoutesByFullPath {
   '/courses/': typeof CoursesIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/learn/': typeof LearnIndexRoute
+  '/instructor/$courseId/grading': typeof InstructorCourseIdGradingRoute
+  '/learn/$courseId/competencies': typeof LearnCourseIdCompetenciesRoute
+  '/learn/$courseId/diagnostic': typeof LearnCourseIdDiagnosticRoute
+  '/verify/badge/$badgeCode': typeof VerifyBadgeBadgeCodeRoute
+  '/api/ai/assessments/generate': typeof ApiAiAssessmentsGenerateRoute
+  '/api/ai/config/list': typeof ApiAiConfigListRoute
+  '/api/ai/config/set': typeof ApiAiConfigSetRoute
+  '/api/ai/config/test': typeof ApiAiConfigTestRoute
+  '/api/ai/course-intelligence/extract': typeof ApiAiCourseIntelligenceExtractRoute
+  '/api/ai/feedback/generate': typeof ApiAiFeedbackGenerateRoute
+  '/api/ai/hints/generate': typeof ApiAiHintsGenerateRoute
   '/api/public/mpesa/callback': typeof ApiPublicMpesaCallbackRoute
+  '/learn/$courseId/$competencyId/assessment': typeof LearnCourseIdCompetencyIdAssessmentRoute
+  '/learn/$courseId/$competencyId/project': typeof LearnCourseIdCompetencyIdProjectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
-  '/certificates': typeof CertificatesRoute
+  '/certificates': typeof CertificatesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
+  '/certificates/competency-profile': typeof CertificatesCompetencyProfileRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/instructor/$courseId': typeof InstructorCourseIdRoute
+  '/instructor/$courseId': typeof InstructorCourseIdRouteWithChildren
   '/instructor/analytics': typeof InstructorAnalyticsRoute
   '/instructor/payouts': typeof InstructorPayoutsRoute
-  '/learn/$courseId': typeof LearnCourseIdRoute
+  '/learn/$courseId': typeof LearnCourseIdRouteWithChildren
   '/settings/orders': typeof SettingsOrdersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/u/$username': typeof UUsernameRoute
@@ -197,25 +311,40 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesIndexRoute
   '/instructor': typeof InstructorIndexRoute
   '/learn': typeof LearnIndexRoute
+  '/instructor/$courseId/grading': typeof InstructorCourseIdGradingRoute
+  '/learn/$courseId/competencies': typeof LearnCourseIdCompetenciesRoute
+  '/learn/$courseId/diagnostic': typeof LearnCourseIdDiagnosticRoute
+  '/verify/badge/$badgeCode': typeof VerifyBadgeBadgeCodeRoute
+  '/api/ai/assessments/generate': typeof ApiAiAssessmentsGenerateRoute
+  '/api/ai/config/list': typeof ApiAiConfigListRoute
+  '/api/ai/config/set': typeof ApiAiConfigSetRoute
+  '/api/ai/config/test': typeof ApiAiConfigTestRoute
+  '/api/ai/course-intelligence/extract': typeof ApiAiCourseIntelligenceExtractRoute
+  '/api/ai/feedback/generate': typeof ApiAiFeedbackGenerateRoute
+  '/api/ai/hints/generate': typeof ApiAiHintsGenerateRoute
   '/api/public/mpesa/callback': typeof ApiPublicMpesaCallbackRoute
+  '/learn/$courseId/$competencyId/assessment': typeof LearnCourseIdCompetencyIdAssessmentRoute
+  '/learn/$courseId/$competencyId/project': typeof LearnCourseIdCompetencyIdProjectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
-  '/certificates': typeof CertificatesRoute
+  '/certificates': typeof CertificatesRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/screening': typeof ScreeningRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teach': typeof TeachRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/ai-settings': typeof AdminAiSettingsRoute
+  '/certificates/competency-profile': typeof CertificatesCompetencyProfileRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
-  '/instructor/$courseId': typeof InstructorCourseIdRoute
+  '/instructor/$courseId': typeof InstructorCourseIdRouteWithChildren
   '/instructor/analytics': typeof InstructorAnalyticsRoute
   '/instructor/payouts': typeof InstructorPayoutsRoute
-  '/learn/$courseId': typeof LearnCourseIdRoute
+  '/learn/$courseId': typeof LearnCourseIdRouteWithChildren
   '/settings/orders': typeof SettingsOrdersRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/u/$username': typeof UUsernameRoute
@@ -223,7 +352,20 @@ export interface FileRoutesById {
   '/courses/': typeof CoursesIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/learn/': typeof LearnIndexRoute
+  '/instructor/$courseId/grading': typeof InstructorCourseIdGradingRoute
+  '/learn/$courseId/competencies': typeof LearnCourseIdCompetenciesRoute
+  '/learn/$courseId/diagnostic': typeof LearnCourseIdDiagnosticRoute
+  '/verify/badge/$badgeCode': typeof VerifyBadgeBadgeCodeRoute
+  '/api/ai/assessments/generate': typeof ApiAiAssessmentsGenerateRoute
+  '/api/ai/config/list': typeof ApiAiConfigListRoute
+  '/api/ai/config/set': typeof ApiAiConfigSetRoute
+  '/api/ai/config/test': typeof ApiAiConfigTestRoute
+  '/api/ai/course-intelligence/extract': typeof ApiAiCourseIntelligenceExtractRoute
+  '/api/ai/feedback/generate': typeof ApiAiFeedbackGenerateRoute
+  '/api/ai/hints/generate': typeof ApiAiHintsGenerateRoute
   '/api/public/mpesa/callback': typeof ApiPublicMpesaCallbackRoute
+  '/learn/$courseId/$competencyId/assessment': typeof LearnCourseIdCompetencyIdAssessmentRoute
+  '/learn/$courseId/$competencyId/project': typeof LearnCourseIdCompetencyIdProjectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -238,6 +380,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
+    | '/admin/ai-settings'
+    | '/certificates/competency-profile'
     | '/courses/$courseId'
     | '/instructor/$courseId'
     | '/instructor/analytics'
@@ -250,7 +394,20 @@ export interface FileRouteTypes {
     | '/courses/'
     | '/instructor/'
     | '/learn/'
+    | '/instructor/$courseId/grading'
+    | '/learn/$courseId/competencies'
+    | '/learn/$courseId/diagnostic'
+    | '/verify/badge/$badgeCode'
+    | '/api/ai/assessments/generate'
+    | '/api/ai/config/list'
+    | '/api/ai/config/set'
+    | '/api/ai/config/test'
+    | '/api/ai/course-intelligence/extract'
+    | '/api/ai/feedback/generate'
+    | '/api/ai/hints/generate'
     | '/api/public/mpesa/callback'
+    | '/learn/$courseId/$competencyId/assessment'
+    | '/learn/$courseId/$competencyId/project'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,6 +420,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
+    | '/admin/ai-settings'
+    | '/certificates/competency-profile'
     | '/courses/$courseId'
     | '/instructor/$courseId'
     | '/instructor/analytics'
@@ -275,7 +434,20 @@ export interface FileRouteTypes {
     | '/courses'
     | '/instructor'
     | '/learn'
+    | '/instructor/$courseId/grading'
+    | '/learn/$courseId/competencies'
+    | '/learn/$courseId/diagnostic'
+    | '/verify/badge/$badgeCode'
+    | '/api/ai/assessments/generate'
+    | '/api/ai/config/list'
+    | '/api/ai/config/set'
+    | '/api/ai/config/test'
+    | '/api/ai/course-intelligence/extract'
+    | '/api/ai/feedback/generate'
+    | '/api/ai/hints/generate'
     | '/api/public/mpesa/callback'
+    | '/learn/$courseId/$competencyId/assessment'
+    | '/learn/$courseId/$competencyId/project'
   id:
     | '__root__'
     | '/'
@@ -288,6 +460,8 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teach'
     | '/wishlist'
+    | '/admin/ai-settings'
+    | '/certificates/competency-profile'
     | '/courses/$courseId'
     | '/instructor/$courseId'
     | '/instructor/analytics'
@@ -300,25 +474,38 @@ export interface FileRouteTypes {
     | '/courses/'
     | '/instructor/'
     | '/learn/'
+    | '/instructor/$courseId/grading'
+    | '/learn/$courseId/competencies'
+    | '/learn/$courseId/diagnostic'
+    | '/verify/badge/$badgeCode'
+    | '/api/ai/assessments/generate'
+    | '/api/ai/config/list'
+    | '/api/ai/config/set'
+    | '/api/ai/config/test'
+    | '/api/ai/course-intelligence/extract'
+    | '/api/ai/feedback/generate'
+    | '/api/ai/hints/generate'
     | '/api/public/mpesa/callback'
+    | '/learn/$courseId/$competencyId/assessment'
+    | '/learn/$courseId/$competencyId/project'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ApplyRoute: typeof ApplyRoute
   AuthRoute: typeof AuthRoute
-  CertificatesRoute: typeof CertificatesRoute
+  CertificatesRoute: typeof CertificatesRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   ScreeningRoute: typeof ScreeningRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeachRoute: typeof TeachRoute
   WishlistRoute: typeof WishlistRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
-  InstructorCourseIdRoute: typeof InstructorCourseIdRoute
+  InstructorCourseIdRoute: typeof InstructorCourseIdRouteWithChildren
   InstructorAnalyticsRoute: typeof InstructorAnalyticsRoute
   InstructorPayoutsRoute: typeof InstructorPayoutsRoute
-  LearnCourseIdRoute: typeof LearnCourseIdRoute
+  LearnCourseIdRoute: typeof LearnCourseIdRouteWithChildren
   SettingsOrdersRoute: typeof SettingsOrdersRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -326,6 +513,14 @@ export interface RootRouteChildren {
   CoursesIndexRoute: typeof CoursesIndexRoute
   InstructorIndexRoute: typeof InstructorIndexRoute
   LearnIndexRoute: typeof LearnIndexRoute
+  VerifyBadgeBadgeCodeRoute: typeof VerifyBadgeBadgeCodeRoute
+  ApiAiAssessmentsGenerateRoute: typeof ApiAiAssessmentsGenerateRoute
+  ApiAiConfigListRoute: typeof ApiAiConfigListRoute
+  ApiAiConfigSetRoute: typeof ApiAiConfigSetRoute
+  ApiAiConfigTestRoute: typeof ApiAiConfigTestRoute
+  ApiAiCourseIntelligenceExtractRoute: typeof ApiAiCourseIntelligenceExtractRoute
+  ApiAiFeedbackGenerateRoute: typeof ApiAiFeedbackGenerateRoute
+  ApiAiHintsGenerateRoute: typeof ApiAiHintsGenerateRoute
   ApiPublicMpesaCallbackRoute: typeof ApiPublicMpesaCallbackRoute
 }
 
@@ -485,6 +680,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certificates/competency-profile': {
+      id: '/certificates/competency-profile'
+      path: '/competency-profile'
+      fullPath: '/certificates/competency-profile'
+      preLoaderRoute: typeof CertificatesCompetencyProfileRouteImport
+      parentRoute: typeof CertificatesRoute
+    }
+    '/admin/ai-settings': {
+      id: '/admin/ai-settings'
+      path: '/ai-settings'
+      fullPath: '/admin/ai-settings'
+      preLoaderRoute: typeof AdminAiSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/verify/badge/$badgeCode': {
+      id: '/verify/badge/$badgeCode'
+      path: '/verify/badge/$badgeCode'
+      fullPath: '/verify/badge/$badgeCode'
+      preLoaderRoute: typeof VerifyBadgeBadgeCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/$courseId/diagnostic': {
+      id: '/learn/$courseId/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/learn/$courseId/diagnostic'
+      preLoaderRoute: typeof LearnCourseIdDiagnosticRouteImport
+      parentRoute: typeof LearnCourseIdRoute
+    }
+    '/learn/$courseId/competencies': {
+      id: '/learn/$courseId/competencies'
+      path: '/competencies'
+      fullPath: '/learn/$courseId/competencies'
+      preLoaderRoute: typeof LearnCourseIdCompetenciesRouteImport
+      parentRoute: typeof LearnCourseIdRoute
+    }
+    '/instructor/$courseId/grading': {
+      id: '/instructor/$courseId/grading'
+      path: '/grading'
+      fullPath: '/instructor/$courseId/grading'
+      preLoaderRoute: typeof InstructorCourseIdGradingRouteImport
+      parentRoute: typeof InstructorCourseIdRoute
+    }
+    '/learn/$courseId/$competencyId/project': {
+      id: '/learn/$courseId/$competencyId/project'
+      path: '/$competencyId/project'
+      fullPath: '/learn/$courseId/$competencyId/project'
+      preLoaderRoute: typeof LearnCourseIdCompetencyIdProjectRouteImport
+      parentRoute: typeof LearnCourseIdRoute
+    }
+    '/learn/$courseId/$competencyId/assessment': {
+      id: '/learn/$courseId/$competencyId/assessment'
+      path: '/$competencyId/assessment'
+      fullPath: '/learn/$courseId/$competencyId/assessment'
+      preLoaderRoute: typeof LearnCourseIdCompetencyIdAssessmentRouteImport
+      parentRoute: typeof LearnCourseIdRoute
+    }
     '/api/public/mpesa/callback': {
       id: '/api/public/mpesa/callback'
       path: '/api/public/mpesa/callback'
@@ -492,25 +743,126 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMpesaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/hints/generate': {
+      id: '/api/ai/hints/generate'
+      path: '/api/ai/hints/generate'
+      fullPath: '/api/ai/hints/generate'
+      preLoaderRoute: typeof ApiAiHintsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/feedback/generate': {
+      id: '/api/ai/feedback/generate'
+      path: '/api/ai/feedback/generate'
+      fullPath: '/api/ai/feedback/generate'
+      preLoaderRoute: typeof ApiAiFeedbackGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/course-intelligence/extract': {
+      id: '/api/ai/course-intelligence/extract'
+      path: '/api/ai/course-intelligence/extract'
+      fullPath: '/api/ai/course-intelligence/extract'
+      preLoaderRoute: typeof ApiAiCourseIntelligenceExtractRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/config/test': {
+      id: '/api/ai/config/test'
+      path: '/api/ai/config/test'
+      fullPath: '/api/ai/config/test'
+      preLoaderRoute: typeof ApiAiConfigTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/config/set': {
+      id: '/api/ai/config/set'
+      path: '/api/ai/config/set'
+      fullPath: '/api/ai/config/set'
+      preLoaderRoute: typeof ApiAiConfigSetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/config/list': {
+      id: '/api/ai/config/list'
+      path: '/api/ai/config/list'
+      fullPath: '/api/ai/config/list'
+      preLoaderRoute: typeof ApiAiConfigListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/assessments/generate': {
+      id: '/api/ai/assessments/generate'
+      path: '/api/ai/assessments/generate'
+      fullPath: '/api/ai/assessments/generate'
+      preLoaderRoute: typeof ApiAiAssessmentsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAiSettingsRoute: typeof AdminAiSettingsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAiSettingsRoute: AdminAiSettingsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface CertificatesRouteChildren {
+  CertificatesCompetencyProfileRoute: typeof CertificatesCompetencyProfileRoute
+}
+
+const CertificatesRouteChildren: CertificatesRouteChildren = {
+  CertificatesCompetencyProfileRoute: CertificatesCompetencyProfileRoute,
+}
+
+const CertificatesRouteWithChildren = CertificatesRoute._addFileChildren(
+  CertificatesRouteChildren,
+)
+
+interface InstructorCourseIdRouteChildren {
+  InstructorCourseIdGradingRoute: typeof InstructorCourseIdGradingRoute
+}
+
+const InstructorCourseIdRouteChildren: InstructorCourseIdRouteChildren = {
+  InstructorCourseIdGradingRoute: InstructorCourseIdGradingRoute,
+}
+
+const InstructorCourseIdRouteWithChildren =
+  InstructorCourseIdRoute._addFileChildren(InstructorCourseIdRouteChildren)
+
+interface LearnCourseIdRouteChildren {
+  LearnCourseIdCompetenciesRoute: typeof LearnCourseIdCompetenciesRoute
+  LearnCourseIdDiagnosticRoute: typeof LearnCourseIdDiagnosticRoute
+  LearnCourseIdCompetencyIdAssessmentRoute: typeof LearnCourseIdCompetencyIdAssessmentRoute
+  LearnCourseIdCompetencyIdProjectRoute: typeof LearnCourseIdCompetencyIdProjectRoute
+}
+
+const LearnCourseIdRouteChildren: LearnCourseIdRouteChildren = {
+  LearnCourseIdCompetenciesRoute: LearnCourseIdCompetenciesRoute,
+  LearnCourseIdDiagnosticRoute: LearnCourseIdDiagnosticRoute,
+  LearnCourseIdCompetencyIdAssessmentRoute:
+    LearnCourseIdCompetencyIdAssessmentRoute,
+  LearnCourseIdCompetencyIdProjectRoute: LearnCourseIdCompetencyIdProjectRoute,
+}
+
+const LearnCourseIdRouteWithChildren = LearnCourseIdRoute._addFileChildren(
+  LearnCourseIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ApplyRoute: ApplyRoute,
   AuthRoute: AuthRoute,
-  CertificatesRoute: CertificatesRoute,
+  CertificatesRoute: CertificatesRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   ScreeningRoute: ScreeningRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeachRoute: TeachRoute,
   WishlistRoute: WishlistRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
-  InstructorCourseIdRoute: InstructorCourseIdRoute,
+  InstructorCourseIdRoute: InstructorCourseIdRouteWithChildren,
   InstructorAnalyticsRoute: InstructorAnalyticsRoute,
   InstructorPayoutsRoute: InstructorPayoutsRoute,
-  LearnCourseIdRoute: LearnCourseIdRoute,
+  LearnCourseIdRoute: LearnCourseIdRouteWithChildren,
   SettingsOrdersRoute: SettingsOrdersRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   UUsernameRoute: UUsernameRoute,
@@ -518,6 +870,14 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesIndexRoute: CoursesIndexRoute,
   InstructorIndexRoute: InstructorIndexRoute,
   LearnIndexRoute: LearnIndexRoute,
+  VerifyBadgeBadgeCodeRoute: VerifyBadgeBadgeCodeRoute,
+  ApiAiAssessmentsGenerateRoute: ApiAiAssessmentsGenerateRoute,
+  ApiAiConfigListRoute: ApiAiConfigListRoute,
+  ApiAiConfigSetRoute: ApiAiConfigSetRoute,
+  ApiAiConfigTestRoute: ApiAiConfigTestRoute,
+  ApiAiCourseIntelligenceExtractRoute: ApiAiCourseIntelligenceExtractRoute,
+  ApiAiFeedbackGenerateRoute: ApiAiFeedbackGenerateRoute,
+  ApiAiHintsGenerateRoute: ApiAiHintsGenerateRoute,
   ApiPublicMpesaCallbackRoute: ApiPublicMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport

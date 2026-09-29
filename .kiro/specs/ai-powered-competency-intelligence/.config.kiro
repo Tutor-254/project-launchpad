@@ -1,0 +1,109 @@
+{
+  "specName": "AI-Powered Competency Intelligence",
+  "specType": "feature",
+  "workflowType": "requirements-first",
+  "featureName": "ai-powered-competency-intelligence",
+  "description": "Integrate Google Gemini API to enhance the competency framework with intelligent assessment generation, facilitator screening, course intelligence, and adaptive learning paths.",
+  "priority": "P0",
+  "estimatedHours": "80-100",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Foundation & Setup",
+      "tasks": ["1", "2", "3"],
+      "estimatedHours": "12-16",
+      "status": "not-started"
+    },
+    {
+      "phase": 2,
+      "name": "Core AI Services",
+      "tasks": ["4", "5", "6", "7", "8", "9", "10"],
+      "estimatedHours": "35-45",
+      "status": "not-started"
+    },
+    {
+      "phase": 3,
+      "name": "Business Logic Integration",
+      "tasks": ["11", "12", "13", "14", "15"],
+      "estimatedHours": "20-25",
+      "status": "not-started"
+    },
+    {
+      "phase": 4,
+      "name": "UI Components & Routes",
+      "tasks": ["16", "17", "18", "19", "20", "21"],
+      "estimatedHours": "30-35",
+      "status": "not-started"
+    },
+    {
+      "phase": 5,
+      "name": "Monitoring & Optimization",
+      "tasks": ["22", "23", "24", "25"],
+      "estimatedHours": "12-15",
+      "status": "not-started"
+    },
+    {
+      "phase": 6,
+      "name": "Testing & Documentation",
+      "tasks": ["26", "27", "28", "29", "30"],
+      "estimatedHours": "12-18",
+      "status": "not-started"
+    }
+  ],
+  "dependencies": [
+    "competency-framework-and-mastery"
+  ],
+  "keyFeatures": [
+    "Assessment Generation (Diagnostic, CAT 1, CAT 2)",
+    "Facilitator Screening & AI-Powered Evaluation",
+    "Course Intelligence Extraction",
+    "Personalized Feedback Generation",
+    "Intelligent Tutoring & Hints",
+    "Content Quality Audit",
+    "Adaptive Learning Pathways"
+  ],
+  "risks": [
+    {
+      "risk": "AI generates poor quality assessments",
+      "mitigation": "Instructor review before use; quality validation checklist; feedback loop to improve prompts"
+    },
+    {
+      "risk": "Cost overruns on API calls",
+      "mitigation": "Budget caps; rate limiting; usage alerts; cost dashboard"
+    },
+    {
+      "risk": "Learner data privacy concerns",
+      "mitigation": "Anonymization; transparency disclosure; opt-out option; audit trail"
+    },
+    {
+      "risk": "API downtime",
+      "mitigation": "Fallback to manual processes; offline assessment templates; graceful error messages"
+    },
+    {
+      "risk": "Bias in AI-generated content",
+      "mitigation": "Bias testing; diverse question coverage; human review; appeal process"
+    }
+  ],
+  "successMetrics": [
+    "Assessment generation time <60s (async)",
+    "Instructor satisfaction >4/5",
+    "Learner satisfaction with AI feedback >4/5",
+    "Assessment quality (instructor pass rate) >85%",
+    "Cost per assessment <$0.10",
+    "Job queue success rate >99%"
+  ],
+  "technologies": [
+    "Google Gemini API",
+    "Supabase Edge Functions",
+    "PostgreSQL Triggers",
+    "TypeScript",
+    "React",
+    "Tailwind CSS"
+  ],
+  "integrationPoints": [
+    "Competency Framework (existing)",
+    "Assessment Submission (existing)",
+    "Facilitator Onboarding (existing)",
+    "Course Editor (existing)"
+  ]
+}
