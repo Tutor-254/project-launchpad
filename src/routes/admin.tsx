@@ -15,6 +15,7 @@ import { EyeOff, Trash2, ShieldOff, CheckCircle2, XCircle } from "lucide-react";
 import { requireAuth } from "@/lib/auth-guards";
 import { getPassMark, updatePassMark } from "@/lib/assessment.functions";
 import { getScreeningPassThreshold, updateScreeningPassThreshold } from "@/lib/screening.functions";
+import { AiConfigManager } from "@/components/ai-config-manager";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
@@ -94,6 +95,7 @@ function AdminConsole() {
             </TabsTrigger>
             <TabsTrigger value="passmark">Pass Mark</TabsTrigger>
             <TabsTrigger value="screening-threshold">Screening Threshold</TabsTrigger>
+            <TabsTrigger value="ai-settings">AI Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="reviews" className="mt-6"><ReviewsMod /></TabsContent>
           <TabsContent value="questions" className="mt-6"><QuestionsMod /></TabsContent>
@@ -101,6 +103,7 @@ function AdminConsole() {
           <TabsContent value="applications" className="mt-6"><ApplicationsMod /></TabsContent>
           <TabsContent value="passmark" className="mt-6"><PassMarkConfig /></TabsContent>
           <TabsContent value="screening-threshold" className="mt-6"><ScreeningThresholdConfig /></TabsContent>
+          <TabsContent value="ai-settings" className="mt-6"><AiSettingsConfig /></TabsContent>
         </Tabs>
       </main>
       <SiteFooter />
@@ -678,6 +681,65 @@ function ScreeningThresholdConfig() {
           Current threshold: <span className="font-semibold">{data.threshold}%</span>
         </p>
       )}
+    </div>
+  );
+}
+
+// ─── AiSettingsConfig ──────────────────────────────────────────────────────────
+
+function AiSettingsConfig() {
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h2 className="font-serif text-lg mb-1">AI Configuration</h2>
+        <p className="text-sm text-muted-foreground">
+          Configure API keys and settings for AI-powered features
+        </p>
+      </div>
+
+      {/* AI Configuration Manager */}
+      <AiConfigManager
+        onApiKeySet={() => {
+          console.log('API key has been set')
+          toast.success('AI configuration updated successfully')
+        }}
+      />
+
+      {/* Documentation */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-800">
+        <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to get your Gemini API Key</h3>
+        <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800 dark:text-blue-200">
+          <li>
+            Go to{' '}
+            <a
+              href="https://makersuite.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-medium hover:text-blue-600"
+            >
+              Google AI Studio
+            </a>
+          </li>
+          <li>Sign in with your Google account</li>
+          <li>Click "Create API Key" and select your project</li>
+          <li>Copy the generated API key</li>
+          <li>Paste it in the form above and click "Test API Key"</li>
+          <li>Once validated, click "Save Configuration"</li>
+        </ol>
+      </div>
+
+      {/* Feature List */}
+      <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-800">
+        <h3 className="font-semibold text-green-900 dark:text-green-100 mb-2">AI Features Using Gemini</h3>
+        <ul className="list-disc list-inside space-y-1 text-sm text-green-800 dark:text-green-200">
+          <li>Auto-generate assessment questions from competency descriptions</li>
+          <li>Intelligent feedback on student submissions</li>
+          <li>Smart grading with rubric-based evaluation</li>
+          <li>Personalized learning path recommendations</li>
+          <li>Course content suggestions and improvements</li>
+          <li>Learner support chatbot for instant help</li>
+        </ul>
+      </div>
     </div>
   );
 }
