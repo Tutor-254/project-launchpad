@@ -58,6 +58,18 @@ function CourseEditor() {
     },
   });
 
+  // Prepare content chunks for AI generation
+  const contentChunks = (course?.course_sections || [])
+    .sort((a: any, b: any) => a.position - b.position)
+    .map((section: any) => ({
+      sectionTitle: section.title,
+      lectureContent: (section.lectures || [])
+        .sort((a: any, b: any) => a.position - b.position)
+        .map((lecture: any) => lecture.title)
+        .join('. '),
+    }))
+    .filter((chunk: any) => chunk.lectureContent);
+
   const { data: cats } = useQuery({
     queryKey: ["all-cats"],
     queryFn: async () => (await supabase.from("categories").select("*").order("name")).data ?? [],
@@ -207,6 +219,14 @@ function CourseEditor() {
           </Link>
           <div className="flex items-center gap-3">
             <Badge variant="outline">{course!.status}</Badge>
+            {course!.status === "published" && (
+              <Button
+                variant="outline"
+                onClick={() => window.open(`/courses/${courseId}`, '_blank')}
+              >
+                Preview
+              </Button>
+            )}
             <Button variant="outline" onClick={() => publishToggle.mutate()}>
               {course!.status === "published" ? "Unpublish" : "Publish"}
             </Button>
@@ -239,6 +259,11 @@ function CourseEditor() {
                     <Field label="Description">
                       <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={8} />
                     </Field>
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <Button size="sm" onClick={() => saveCourse.mutate()}>
+                      Save Basics
+                    </Button>
                   </div>
                 </section>
 
@@ -311,6 +336,11 @@ function CourseEditor() {
                   <Field label="Language">
                     <Input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} />
                   </Field>
+                  <div className="pt-2">
+                    <Button size="sm" onClick={() => saveCourse.mutate()} className="w-full">
+                      Save Details
+                    </Button>
+                  </div>
                 </section>
 
                 <button
@@ -324,7 +354,7 @@ function CourseEditor() {
           </TabsContent>
 
           <TabsContent value="assessments" className="space-y-8">
-            <AssessmentsDashboard courseId={courseId} />
+            <AssessmentsDashboard courseId={courseId} contentChunks={contentChunks} />
             <EssayReviewPanel courseId={courseId} />
           </TabsContent>
         </Tabs>
