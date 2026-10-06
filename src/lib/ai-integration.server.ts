@@ -6,6 +6,9 @@ import { getGeminiApiKey } from './ai-config.server'
  * Server-side utilities for using Gemini API with competency framework
  */
 
+// Get model from environment or use default
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
+
 let cachedClient: GoogleGenerativeAI | null = null
 
 /**
@@ -32,7 +35,7 @@ export async function generateAssessmentQuestions(
 ) {
   try {
     const client = await getGeminiClient()
-    const model = client.getGenerativeModel({ model: 'gemini-pro' })
+    const model = client.getGenerativeModel({ model: GEMINI_MODEL })
 
     const prompt = `You are an expert educational content creator. Create ${questionCount} multiple-choice assessment questions for the following competency:
 
@@ -88,7 +91,7 @@ export async function generateSubmissionFeedback(
 ) {
   try {
     const client = await getGeminiClient()
-    const model = client.getGenerativeModel({ model: 'gemini-pro' })
+    const model = client.getGenerativeModel({ model: GEMINI_MODEL })
 
     const criteriaList = rubricCriteria.map((c, i) => `${i + 1}. ${c}`).join('\n')
 
@@ -139,7 +142,7 @@ export async function generateLearningPathRecommendation(
 ) {
   try {
     const client = await getGeminiClient()
-    const model = client.getGenerativeModel({ model: 'gemini-pro' })
+    const model = client.getGenerativeModel({ model: GEMINI_MODEL })
 
     const completed = completedCompetencies.length > 0 
       ? completedCompetencies.join(', ') 
@@ -193,7 +196,7 @@ export async function generateCourseImprovements(
 )  {
   try {
     const client = await getGeminiClient()
-    const model = client.getGenerativeModel({ model: 'gemini-pro' })
+    const model = client.getGenerativeModel({ model: GEMINI_MODEL })
 
     const topicsList = currentTopics.join(', ')
 
@@ -248,7 +251,7 @@ export async function generateContent(
   try {
     const client = await getGeminiClient()
     const model = client.getGenerativeModel({
-      model: options?.model || 'gemini-pro',
+      model: options?.model || GEMINI_MODEL,
       generationConfig: {
         temperature: options?.temperature || 0.7,
         maxOutputTokens: options?.maxOutputTokens || 1000,

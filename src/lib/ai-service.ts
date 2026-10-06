@@ -55,23 +55,11 @@ export class AIServiceError extends Error {
 }
 
 // Factory — returns the configured provider; server-side only.
-// Lazily imports the concrete adapter so the AI SDK never enters the client bundle.
+// Note: This is legacy code. New code should use the Gemini services directly.
 export function getAIProvider(): AIProvider {
-  const providerName = (process.env.AI_PROVIDER ?? 'openai').toLowerCase();
-
-  if (providerName === 'openai') {
-    // Dynamic import is evaluated at call-time, keeping the import server-side only.
-    // Callers are async server functions so they can await the provider methods
-    // which internally resolve the lazy module on first use.
-    const { OpenAIProvider } = require('./ai-providers/openai') as {
-      OpenAIProvider: new () => AIProvider;
-    };
-    return new OpenAIProvider();
-  }
-
   throw new AIServiceError(
-    providerName,
+    'legacy',
     'getAIProvider',
-    `Unknown AI provider "${providerName}". Set AI_PROVIDER to a supported value (e.g. "openai").`,
+    'This AI provider factory is deprecated. Use the Gemini AI services directly from @/lib/ai-services/*',
   );
 }

@@ -8,7 +8,7 @@ import type { Content, GenerateContentRequest } from '@google/generative-ai'
 
 // Configuration from environment
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest'
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp'
 const GEMINI_COST_LIMIT_USD = parseFloat(process.env.GEMINI_COST_LIMIT_USD || '100')
 
 // Retry configuration

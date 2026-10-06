@@ -122,8 +122,8 @@ export async function testGeminiApiKey(apiKey: string) {
     
     const client = new GoogleGenerativeAI(apiKey)
     
-    // Try multiple models in order of preference
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+    // Try multiple models in order of preference (latest to oldest)
+    const models = ['gemini-2.0-flash-exp', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']
     let lastError: Error | null = null
     
     for (const modelName of models) {
@@ -139,6 +139,8 @@ export async function testGeminiApiKey(apiKey: string) {
         }
       } catch (error) {
         lastError = error as Error
+        // Log which model failed and continue to next
+        console.log(`[AI Config] Model ${modelName} failed:`, lastError.message)
         continue
       }
     }
